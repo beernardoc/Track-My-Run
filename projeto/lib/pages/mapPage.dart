@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:projeto/misc/tile_providers.dart';
 import 'package:location/location.dart';
 import 'package:projeto/model/route.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -13,53 +12,31 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  int _counter = 0;
-  final mapController = MapController();
+  late GoogleMapController mapController;
+  
   LocationData? _currentLocation;
   Location _location = Location();
-
   
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+
+  final LatLng _center = const LatLng(45.521563, -122.677433);
+  Set<Marker> _markers = {}; // Define um Set para armazenar os marcadores
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
   }
-  
-
-  
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(40.631113, -8.656152),
-              initialZoom: 5,
-              
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _center,
+              zoom: 11.0,
             ),
-            children: [
-              openStreetMapTileLayer,
-              MarkerLayer(markers: 
-              _currentLocation != null ? [ // if _currentLocation is not null, show the marker
-                Marker(
-                  width: 80.0,
-                  height: 80.0,
-                  point: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
-                  child: const Icon(
-                    Icons.location_on,
-                    size: 50,
-                    color: Colors.green,
-                  ),
-                ),
-              ] : []               
-              )
-            ],
+            markers: _markers, // Use o Set de marcadores aqui
           ),
           Positioned(
             bottom: 20,
@@ -70,13 +47,20 @@ class _MapPageState extends State<MapPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton.icon(
+                 ElevatedButton.icon(
                     onPressed: () {
                       _getCurrentLocation().then((_) {
                         if (_currentLocation != null) {
-                           route newRoute = route(start: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!));
-                          
-
+                          // Atualiza o Set de marcadores com o novo marcador
+                          setState(() {
+                            _markers.add(
+                              Marker(
+                                markerId: MarkerId('currentLocation'),
+                                position: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+                                icon: BitmapDescriptor.defaultMarker,
+                              ),
+                            );
+                          });
                         }
                       });
                     },
@@ -85,7 +69,7 @@ class _MapPageState extends State<MapPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple,
                     ),
-                  ),
+                 ),
                 ],
               ),
             ),
@@ -93,23 +77,31 @@ class _MapPageState extends State<MapPage> {
         ],
       ),
     );
-  }
+ }
+
 
 
 Future<void> _getCurrentLocation() async {
-  try {
-    final LocationData locationData = await _location.getLocation();
-    setState(() {
-      _currentLocation = locationData;
-    });
+   try {
+     final LocationData locationData = await _location.getLocation();
+     setState(() {
+       _currentLocation = locationData;
+     });
 
-    if (_currentLocation != null) {
-      final double latitude = _currentLocation!.latitude!;
-      final double longitude = _currentLocation!.longitude!;
-      mapController.move(LatLng(latitude, longitude), 15.0);
-    }
-  } catch (e) {
-    print('Error getting location: $e');
-  }
-}
+     if (_currentLocation != null) {
+       final double latitude = _currentLocation!.latitude!;
+       final double longitude = _currentLocation!.longitude!;
+       mapController.animateCamera(
+         CameraUpdate.newCameraPosition(
+           CameraPosition(
+             target: LatLng(latitude, longitude),
+             zoom: 15,
+           ),
+         ),
+       );
+     }
+   } catch (e) {
+     print('Error getting location: $e');
+   }
+ }
 }

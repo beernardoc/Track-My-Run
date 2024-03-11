@@ -11,14 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
+  
   @override
     Widget build(BuildContext context) {
       return MaterialApp(
@@ -26,8 +19,17 @@ class _HomePageState extends State<HomePage> {
           length: 4,
           child: Scaffold(
             appBar: AppBar(
-              backgroundColor: Color(0xFF3F5AA6),
-              title: Text("Title text"),
+              // ignore: prefer_const_constructors
+              backgroundColor: Color.fromARGB(255, 19, 199, 49),
+
+              // ignore: prefer_const_constructors
+              title: Text("TrackMyRune"),
+              centerTitle: true,
+              titleTextStyle: const TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+              
             ),
             bottomNavigationBar: menu(),
             body: TabBarView(
