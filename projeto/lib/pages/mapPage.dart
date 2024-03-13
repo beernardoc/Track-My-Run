@@ -1,8 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:projeto/misc/tile_providers.dart';
-import 'package:location/location.dart';
-import 'package:projeto/model/route.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -13,13 +13,14 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
-  
+
   LocationData? _currentLocation;
   Location _location = Location();
-  
+  List<LatLng> _routeCoordinates = [];
+  bool _isRunning = false;
+  late StreamSubscription<LocationData> _locationSubscription;
 
   final LatLng _center = const LatLng(45.521563, -122.677433);
-  Set<Marker> _markers = {}; // Define um Set para armazenar os marcadores
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -36,7 +37,8 @@ class _MapPageState extends State<MapPage> {
               target: _center,
               zoom: 11.0,
             ),
-            markers: _markers, // Use o Set de marcadores aqui
+            markers: _buildMarkers(),
+            polylines: _buildPolylines(),
           ),
           Positioned(
             bottom: 20,
@@ -47,29 +49,32 @@ class _MapPageState extends State<MapPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                 ElevatedButton.icon(
+                  ElevatedButton.icon(
                     onPressed: () {
-                      _getCurrentLocation().then((_) {
-                        if (_currentLocation != null) {
-                          // Atualiza o Set de marcadores com o novo marcador
-                          setState(() {
-                            _markers.add(
-                              Marker(
-                                markerId: MarkerId('currentLocation'),
-                                position: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
-                                icon: BitmapDescriptor.defaultMarker,
-                              ),
-                            );
-                          });
+                      setState(() {
+                        _isRunning = !_isRunning;
+                        if (_isRunning) {
+                          _startRun();
+                        } else {
+                          _pauseRun();
                         }
                       });
                     },
-                    icon: const Icon(Icons.play_arrow, color: Colors.white),
-                    label: const Text('start tracking', style: TextStyle(color: Colors.white)),
+                    icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white),
+                    label: Text(_isRunning ? 'Pause run' : 'Start run', style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple,
                     ),
-                 ),
+                  ),
+                  SizedBox(width: 20), // Espaçamento entre botões
+                  ElevatedButton.icon(
+                    onPressed: _clearLines,
+                    icon: Icon(Icons.cleaning_services, color: Colors.white),
+                    label: Text('Clean lines', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -77,31 +82,61 @@ class _MapPageState extends State<MapPage> {
         ],
       ),
     );
- }
+  }
 
+  Set<Marker> _buildMarkers() {
+    Set<Marker> markers = {};
+    if (_currentLocation != null) {
+      markers.add(
+        Marker(
+          markerId: MarkerId('currentLocation'),
+          position: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        ),
+      );
+    }
+    return markers;
+  }
 
+  Set<Polyline> _buildPolylines() {
+    Set<Polyline> polylines = {};
+    if (_routeCoordinates.isNotEmpty) {
+      polylines.add(
+        Polyline(
+          polylineId: PolylineId('route'),
+          color: Colors.blue,
+          width: 5,
+          points: _routeCoordinates,
+        ),
+      );
+    }
+    return polylines;
+  }
 
-Future<void> _getCurrentLocation() async {
-   try {
-     final LocationData locationData = await _location.getLocation();
-     setState(() {
-       _currentLocation = locationData;
-     });
+  void _startRun() {
+    _locationSubscription = _location.onLocationChanged.listen((LocationData locationData) {
+      setState(() {
+        _currentLocation = locationData;
+        _routeCoordinates.add(LatLng(locationData.latitude!, locationData.longitude!));
+        mapController.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(locationData.latitude!, locationData.longitude!),
+              zoom: 18,
+            ),
+          ),
+        );
+      });
+    });
+  }
 
-     if (_currentLocation != null) {
-       final double latitude = _currentLocation!.latitude!;
-       final double longitude = _currentLocation!.longitude!;
-       mapController.animateCamera(
-         CameraUpdate.newCameraPosition(
-           CameraPosition(
-             target: LatLng(latitude, longitude),
-             zoom: 15,
-           ),
-         ),
-       );
-     }
-   } catch (e) {
-     print('Error getting location: $e');
-   }
- }
+  void _pauseRun() {
+    _locationSubscription.cancel();
+  }
+
+  void _clearLines() {
+    setState(() {
+      _routeCoordinates.clear();
+    });
+  }
 }
