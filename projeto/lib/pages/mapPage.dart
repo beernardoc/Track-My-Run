@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:projeto/model/DatabaseHelper.dart';
+import 'package:projeto/model/RouteEntity.dart';
+
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -13,18 +16,27 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
-
+  
   LocationData? _currentLocation;
   Location _location = Location();
   List<LatLng> _routeCoordinates = [];
   bool _isRunning = false;
   late StreamSubscription<LocationData> _locationSubscription;
 
-  final LatLng _center = const LatLng(45.521563, -122.677433);
+  int activeRouteID = 0;
+  double activeRouteStartLatitude = 0;
+  double activeRouteStartLongitude = 0;
+  double activeRouteEndLatitude = 0;
+  double activeRouteEndLongitude = 0;
+  String activeRouteTitle = '';
+  
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _getCurrentLocation();
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +46,7 @@ class _MapPageState extends State<MapPage> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: _center,
+              target: LatLng(_currentLocation?.latitude ?? 0, _currentLocation?.longitude ?? 0),
               zoom: 11.0,
             ),
             markers: _buildMarkers(),
@@ -61,20 +73,12 @@ class _MapPageState extends State<MapPage> {
                       });
                     },
                     icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white),
-                    label: Text(_isRunning ? 'Pause run' : 'Start run', style: TextStyle(color: Colors.white)),
+                    label: Text(_isRunning ? 'Finish run' : 'Start run', style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: const Color.fromARGB(255, 19, 199, 49),
                     ),
                   ),
-                  SizedBox(width: 20), // Espaçamento entre botões
-                  ElevatedButton.icon(
-                    onPressed: _clearLines,
-                    icon: Icon(Icons.cleaning_services, color: Colors.white),
-                    label: Text('Clean lines', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                    ),
-                  ),
+                  SizedBox(width: 20),
                 ],
               ),
             ),
@@ -89,7 +93,7 @@ class _MapPageState extends State<MapPage> {
     if (_currentLocation != null) {
       markers.add(
         Marker(
-          markerId: MarkerId('currentLocation'),
+          markerId: const MarkerId('currentLocation'),
           position: LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         ),
@@ -103,7 +107,7 @@ class _MapPageState extends State<MapPage> {
     if (_routeCoordinates.isNotEmpty) {
       polylines.add(
         Polyline(
-          polylineId: PolylineId('route'),
+          polylineId: const PolylineId('route'),
           color: Colors.blue,
           width: 5,
           points: _routeCoordinates,
@@ -113,7 +117,11 @@ class _MapPageState extends State<MapPage> {
     return polylines;
   }
 
-  void _startRun() {
+  Future<void> _startRun() async {
+
+    activeRouteStartLatitude = _currentLocation!.latitude!;
+    activeRouteStartLongitude = _currentLocation!.longitude!;
+    
     _locationSubscription = _location.onLocationChanged.listen((LocationData locationData) {
       setState(() {
         _currentLocation = locationData;
@@ -130,13 +138,92 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  void _pauseRun() {
-    _locationSubscription.cancel();
-  }
+ Future<void> _pauseRun() async {
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String title = '';
+      bool isButtonEnabled = false;
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Would you like to save this run?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      title = value;
+                      isButtonEnabled = title.isNotEmpty;
+                    });
+                  },
+                  decoration: const InputDecoration( hintText: 'Enter a title for this run'),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _clearLines();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isButtonEnabled 
+                    ? () async {
+                        activeRouteEndLatitude = _currentLocation!.latitude!;
+                        activeRouteEndLongitude = _currentLocation!.longitude!;
+                        activeRouteTitle = title;
+                        RouteEntity route = RouteEntity(
+                          title: activeRouteTitle,
+                          startLatitude: activeRouteStartLatitude,
+                          startLongitude: activeRouteStartLongitude,
+                          endLatitude: activeRouteEndLatitude,
+                          endLongitude: activeRouteEndLongitude,
+                        );
+                        await DatabaseHelper.instance.insertRoute(route);
+                        _clearLines();
+                        Navigator.of(context).pop();
+                      }
+                    : null, 
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+  _locationSubscription.cancel();
+}
 
   void _clearLines() {
     setState(() {
       _routeCoordinates.clear();
     });
   }
+
+  Future<void> _getCurrentLocation() async {
+  try {
+    final LocationData locationData = await _location.getLocation();
+    setState(() {
+      _currentLocation = locationData;
+    });
+
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(locationData.latitude!, locationData.longitude!),
+          zoom: 18,
+        ),
+      ),
+    );
+
+  } catch (e) {
+    print('Error getting location: $e');
+  }
+}
 }

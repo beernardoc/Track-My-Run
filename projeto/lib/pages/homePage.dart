@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto/pages/HistoryPage.dart';
 import 'package:projeto/pages/mapPage.dart';
 
 
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
             body: TabBarView(
               children: [
                 const MapPage(),
-                Container(child: const Text("Transactions")),
+                const HistoryPage(),
                 Container(child: const Text("Transactions")),
                 Container(child: const Text("teste")),
               ],
@@ -47,13 +48,13 @@ class _HomePageState extends State<HomePage> {
 
      Widget menu() {
       return Container(
-        color: const Color(0xFF3F5AA6),
+        color: const Color.fromARGB(255, 19, 199, 49),
         child: const TabBar(
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorPadding: EdgeInsets.all(5.0),
-          indicatorColor: Colors.blue,
+          indicatorColor: Colors.white,
           tabs: [
             Tab(
               text: "Home",
