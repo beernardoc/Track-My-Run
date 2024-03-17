@@ -6,6 +6,7 @@ import 'package:location/location.dart';
 import 'package:projeto/model/DatabaseHelper.dart';
 import 'package:projeto/model/RouteEntity.dart';
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 
 
 class MapPage extends StatefulWidget {
@@ -30,6 +31,10 @@ class _MapPageState extends State<MapPage> {
   double activeRouteEndLatitude = 0;
   double activeRouteEndLongitude = 0;
   String activeRouteTitle = '';
+
+  late Timer _stopDetectionTimer;
+  bool _isStopped = false;
+  LocationData? _previousLocation;
   
 
   void _onMapCreated(GoogleMapController controller) {
@@ -122,6 +127,14 @@ class _MapPageState extends State<MapPage> {
 
     activeRouteStartLatitude = _currentLocation!.latitude!;
     activeRouteStartLongitude = _currentLocation!.longitude!;
+
+    _previousLocation = await _location.getLocation();
+
+    _stopDetectionTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    if (!_isStopped) {
+        _checkMovement();
+      }
+    });
     
     _locationSubscription = _location.onLocationChanged.listen((LocationData locationData) {
       setState(() {
@@ -140,6 +153,10 @@ class _MapPageState extends State<MapPage> {
   }
 
  Future<void> _pauseRun() async {
+
+  _stopDetectionTimer.cancel();
+
+
   await showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -242,4 +259,58 @@ class _MapPageState extends State<MapPage> {
     print('Error getting location: $e');
   }
 }
+void _showStopConfirmationDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Want a pause ?'),
+        content: const Text('Want to make a pause ? Dont forget to drink some water and rest a little bit!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Não'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Lidar com o caso em que o usuário confirmou que parou
+            },
+            child: const Text('Sim'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+  void _checkMovement() async {
+    // Obter a nova localização
+    LocationData currentLocation = await _location.getLocation();
+
+    // Calcular a distância entre a localização anterior e a nova localização
+    double distanceInMeters = await Geolocator.distanceBetween(
+      _previousLocation!.latitude!,
+      _previousLocation!.longitude!,
+      currentLocation.latitude!,
+      currentLocation.longitude!,
+    );
+
+      if (distanceInMeters < 5) {
+      _isStopped = true;
+      _showStopConfirmationDialog();
+    } else {
+      // Se houve movimento, atualize a localização anterior e reinicie o temporizador
+      _previousLocation = currentLocation;
+      _stopDetectionTimer.cancel();
+      _stopDetectionTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+        if (!_isStopped) {
+          _checkMovement();
+        }
+      });
+    }
+  }
+
 }
