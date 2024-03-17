@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:projeto/model/DatabaseHelper.dart';
 import 'package:projeto/model/RouteEntity.dart';
+import 'dart:convert';
 
 
 class MapPage extends StatefulWidget {
@@ -166,6 +167,7 @@ class _MapPageState extends State<MapPage> {
             actions: [
               TextButton(
                 onPressed: () {
+                  DatabaseHelper.instance.deleteDatabaseFile();
                   _clearLines();
                   Navigator.of(context).pop();
                 },
@@ -177,12 +179,14 @@ class _MapPageState extends State<MapPage> {
                         activeRouteEndLatitude = _currentLocation!.latitude!;
                         activeRouteEndLongitude = _currentLocation!.longitude!;
                         activeRouteTitle = title;
+                        var pathfinal = convertToString(_routeCoordinates);
                         RouteEntity route = RouteEntity(
                           title: activeRouteTitle,
                           startLatitude: activeRouteStartLatitude,
                           startLongitude: activeRouteStartLongitude,
                           endLatitude: activeRouteEndLatitude,
                           endLongitude: activeRouteEndLongitude,
+                          pathfinal: pathfinal,
                         );
                         await DatabaseHelper.instance.insertRoute(route);
                         _clearLines();
@@ -198,6 +202,18 @@ class _MapPageState extends State<MapPage> {
     },
   );
   _locationSubscription.cancel();
+}
+
+ String convertToString(List<LatLng> routeCoordinates) {
+  List<List<double>> coordinatesList = [];
+  
+  for (LatLng latLng in routeCoordinates) {
+    List<double> coordinatePair = [latLng.latitude, latLng.longitude];
+    coordinatesList.add(coordinatePair);
+  }
+
+  
+  return jsonEncode(coordinatesList);
 }
 
   void _clearLines() {

@@ -61,6 +61,8 @@ class _HistoryPageState extends State<HistoryPage> {
                   Text('Start: ${route.startLatitude}, ${route.startLongitude}'),
                   const SizedBox(height: 4),
                   Text('End: ${route.endLatitude ?? ''}, ${route.endLongitude ?? ''}'),
+                  const SizedBox(height: 4),
+                  Text('Path: ${route.pathfinal}'),
                 ],
               ),
               trailing: PopupMenuButton<String>(

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:projeto/model/RouteEntity.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 
 class DatabaseHelper {
@@ -16,32 +19,33 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'routes.db');
+    String path = join(await getDatabasesPath(), 'routes1.db');
     return await openDatabase(path, version: 1, onCreate: _createDatabase);
   }
 
   Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE routes (
+      CREATE TABLE routes1 (
         id INTEGER PRIMARY KEY,
         title TEXT,
         start_latitude REAL,
         start_longitude REAL,
         end_latitude REAL,
-        end_longitude REAL
+        end_longitude REAL,
+        pathfinal TEXT
+
       )
     ''');
   }
-
   Future<int> insertRoute(RouteEntity route) async {
     Database db = await instance.database;
-    return await db.insert('routes', route.toMap());
+    return await db.insert('routes1', route.toMap());
   }
 
   Future<RouteEntity?> getRouteById(int id) async {
   Database db = await instance.database;
   List<Map<String, dynamic>> maps = await db.query(
-    'routes',
+    'routes1',
     where: 'id = ?',
     whereArgs: [id],
   );
@@ -54,6 +58,7 @@ class DatabaseHelper {
       startLongitude: maps[0]['start_longitude'],
       endLatitude: maps[0]['end_latitude'],
       endLongitude: maps[0]['end_longitude'],
+      pathfinal: maps[0]['pathfinal'],
     );
   } else {
     return null; // Retorna null se a rota não for encontrada
@@ -62,7 +67,7 @@ class DatabaseHelper {
 
   Future<List<RouteEntity>> getAllRoutes() async {
   Database db = await instance.database;
-  List<Map<String, dynamic>> maps = await db.query('routes');
+  List<Map<String, dynamic>> maps = await db.query('routes1');
   return List.generate(maps.length, (i) {
     return RouteEntity(
       id: maps[i]['id'],
@@ -71,6 +76,7 @@ class DatabaseHelper {
       startLongitude: maps[i]['start_longitude'],
       endLatitude: maps[i]['end_latitude'],
       endLongitude: maps[i]['end_longitude'],
+      pathfinal: maps[i]['pathfinal'],
     );
   });
 }
@@ -78,7 +84,7 @@ class DatabaseHelper {
 Future<int> updateRoute(RouteEntity route) async {
   Database db = await instance.database;
   return await db.update(
-    'routes',
+    'routes1',
     route.toMap(),
     where: 'id = ?',
     whereArgs: [route.id],
@@ -88,9 +94,26 @@ Future<int> updateRoute(RouteEntity route) async {
 Future<void> deleteRoute(int? id) async {
   Database db = await instance.database;
   await db.delete(
-    'routes',
+    'routes1',
     where: 'id = ?',
     whereArgs: [id],
   );
+}
+
+Future<void> deleteDatabaseFile() async {
+  try {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String dbPath = appDocDir.path + '/routes.db';
+    
+    File dbFile = File(dbPath);
+    if (await dbFile.exists()) {
+      await dbFile.delete();
+      print('Banco de dados excluído com sucesso.');
+    } else {
+      print('Banco de dados não encontrado.');
+    }
+  } catch (e) {
+    print('Erro ao excluir o banco de dados: $e');
+  }
 }
 }

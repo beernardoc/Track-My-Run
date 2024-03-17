@@ -6,6 +6,7 @@ class RouteEntity{
   double startLongitude;
   double? endLatitude;
   double? endLongitude;
+  String? pathfinal;
 
   RouteEntity({
     this.id,
@@ -14,6 +15,7 @@ class RouteEntity{
     required this.startLongitude,
     this.endLatitude,
     this.endLongitude,
+    this.pathfinal,
   });
 
   Map<String, dynamic> toMap() {
@@ -24,6 +26,7 @@ class RouteEntity{
       'start_longitude': startLongitude,
       'end_latitude': endLatitude,
       'end_longitude': endLongitude,
+      'pathfinal': pathfinal,
     };
   }
 
