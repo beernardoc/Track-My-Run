@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto/pages/HistoryPage.dart';
+import 'package:projeto/pages/WeatherPage.dart';
 import 'package:projeto/pages/mapPage.dart';
 
 
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 const MapPage(),
                 const HistoryPage(),
-                Container(child: const Text("Transactions")),
+                const WeatherPage(),
                 Container(child: const Text("teste")),
               ],
             ),
