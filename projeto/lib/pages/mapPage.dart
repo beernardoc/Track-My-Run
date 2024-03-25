@@ -197,6 +197,7 @@ class _MapPageState extends State<MapPage> {
                         activeRouteEndLongitude = _currentLocation!.longitude!;
                         activeRouteTitle = title;
                         var pathfinal = convertToString(_routeCoordinates);
+                        var distance = await calculateDistance(_routeCoordinates);
                         RouteEntity route = RouteEntity(
                           title: activeRouteTitle,
                           startLatitude: activeRouteStartLatitude,
@@ -204,6 +205,7 @@ class _MapPageState extends State<MapPage> {
                           endLatitude: activeRouteEndLatitude,
                           endLongitude: activeRouteEndLongitude,
                           pathfinal: pathfinal,
+                          distance: distance,
                         );
                         await DatabaseHelper.instance.insertRoute(route);
                         _clearLines();
@@ -232,6 +234,8 @@ class _MapPageState extends State<MapPage> {
   
   return jsonEncode(coordinatesList);
 }
+
+  
 
   void _clearLines() {
     setState(() {
@@ -311,6 +315,17 @@ void _showStopConfirmationDialog() {
         }
       });
     }
+  }
+
+  Future<double> calculateDistance(List<LatLng> routeCoordinates) async {
+    double distance = 0;
+    for (int i = 0; i < routeCoordinates.length - 1; i++) {
+      LatLng start = routeCoordinates[i];
+      LatLng end = routeCoordinates[i + 1];
+      distance += Geolocator.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude);
+    }
+    var distanceKm = distance / 1000;
+    return distanceKm;
   }
 
 }

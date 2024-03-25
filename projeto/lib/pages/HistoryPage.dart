@@ -102,7 +102,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<String>(
-                      future: getAddress(route.endLatitude!, route.endLongitude!),
+                      future: getAddress(route.endLatitude, route.endLongitude),
                       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text('Carregando endereço...');
@@ -114,7 +114,9 @@ class _HistoryPageState extends State<HistoryPage> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    _buildRouteMap(route.pathfinal!),
+                    Text('Distance: ${route.distance.toStringAsFixed(2)} km'),
+                    const SizedBox(height: 10),
+                    _buildRouteMap(route.pathfinal),
                   ],
                 ),
               ],
