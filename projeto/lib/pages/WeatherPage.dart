@@ -66,17 +66,17 @@ class _WeatherPageState extends State<WeatherPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_weather != null) // Verifica se _weather não é nulo antes de acessar seus atributos
-              Text(_weather!.cityName), // Exibe o nome da cidade se _weather não for nulo
-
-              Lottie.asset(getWeatherAnimation(_weather!.description), height: 400, width: 400),
-          
-            if (_weather != null)
-              Text('${_weather!.temperature.round()}°C'), // Exibe a temperatura se _weather não for nulo
+            if (_weather != null) 
+              Column(
+                children: [
+                  Text(_weather!.cityName, style: const TextStyle(fontSize: 24)),
+                  Lottie.asset(getWeatherAnimation(_weather!.description), width: 200, height: 200),
+                  Text('${_weather!.temperature.round()}°C', style: const TextStyle(fontSize: 24)),
+                  Text(_weather!.description, style: const TextStyle(fontSize: 24)),
+                ],
+              ),
             if (_weather == null)
-              Text('Loading...'), // Exibe 'Loading...' se _weather for nulo
-            if (_weather != null)
-              Text(_weather!.description), // Exibe a descrição do tempo se _weather não for nulo
+              const CircularProgressIndicator(),
           ],
         ),
       ),

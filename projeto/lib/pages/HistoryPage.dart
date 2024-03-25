@@ -42,7 +42,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return ListView.builder(
       itemCount: _routes.length,
       itemBuilder: (context, index) {
-        final route = _routes[index];
+        final route = _routes.reversed.toList()[index];
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Card(
