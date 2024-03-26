@@ -7,6 +7,7 @@ import 'package:projeto/model/DatabaseHelper.dart';
 import 'package:projeto/model/RouteEntity.dart';
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 
 class MapPage extends StatefulWidget {
@@ -84,7 +85,6 @@ class _MapPageState extends State<MapPage> {
                       backgroundColor: const Color.fromARGB(255, 19, 199, 49),
                     ),
                   ),
-                  SizedBox(width: 20),
                 ],
               ),
             ),
@@ -152,77 +152,81 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
- Future<void> _pauseRun() async {
+  Future<void> _pauseRun() async {
+    _stopDetectionTimer.cancel();
 
-  _stopDetectionTimer.cancel();
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String title = '';
+        bool isButtonEnabled = false;
 
-
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      String title = '';
-      bool isButtonEnabled = false;
-
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Would you like to save this run?'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      title = value;
-                      isButtonEnabled = title.isNotEmpty;
-                    });
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Would you like to save this run?'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        title = value;
+                        isButtonEnabled = title.isNotEmpty;
+                      });
+                    },
+                    decoration: const InputDecoration(hintText: 'Enter a title for this run'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _takePhotoAndAssociateWithRoute,
+                    child: Text('Take Photo', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    DatabaseHelper.instance.deleteDatabaseFile();
+                    _clearLines();
+                    Navigator.of(context).pop();
                   },
-                  decoration: const InputDecoration( hintText: 'Enter a title for this run'),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isButtonEnabled
+                      ? () async {
+                          activeRouteEndLatitude = _currentLocation!.latitude!;
+                          activeRouteEndLongitude = _currentLocation!.longitude!;
+                          activeRouteTitle = title;
+                          var pathfinal = convertToString(_routeCoordinates);
+                          var distance = await calculateDistance(_routeCoordinates);
+                          RouteEntity route = RouteEntity(
+                            title: activeRouteTitle,
+                            startLatitude: activeRouteStartLatitude,
+                            startLongitude: activeRouteStartLongitude,
+                            endLatitude: activeRouteEndLatitude,
+                            endLongitude: activeRouteEndLongitude,
+                            pathfinal: pathfinal,
+                            distance: distance,
+                          );
+                          await DatabaseHelper.instance.insertRoute(route);
+                          _clearLines();
+                          Navigator.of(context).pop();
+                        }
+                      : null,
+                  child: const Text('Save'),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  DatabaseHelper.instance.deleteDatabaseFile();
-                  _clearLines();
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: isButtonEnabled 
-                    ? () async {
-                        activeRouteEndLatitude = _currentLocation!.latitude!;
-                        activeRouteEndLongitude = _currentLocation!.longitude!;
-                        activeRouteTitle = title;
-                        var pathfinal = convertToString(_routeCoordinates);
-                        var distance = await calculateDistance(_routeCoordinates);
-                        RouteEntity route = RouteEntity(
-                          title: activeRouteTitle,
-                          startLatitude: activeRouteStartLatitude,
-                          startLongitude: activeRouteStartLongitude,
-                          endLatitude: activeRouteEndLatitude,
-                          endLongitude: activeRouteEndLongitude,
-                          pathfinal: pathfinal,
-                          distance: distance,
-                        );
-                        await DatabaseHelper.instance.insertRoute(route);
-                        _clearLines();
-                        Navigator.of(context).pop();
-                      }
-                    : null, 
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-  _locationSubscription.cancel();
-}
-
+            );
+          },
+        );
+      },
+    );
+    _locationSubscription.cancel();
+  }
  String convertToString(List<LatLng> routeCoordinates) {
   List<List<double>> coordinatesList = [];
   
@@ -328,4 +332,13 @@ void _showStopConfirmationDialog() {
     return distanceKm;
   }
 
+}
+
+Future<void> _takePhotoAndAssociateWithRoute() async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  if (pickedFile != null) {
+    // Salvar a imagem no banco de dados
+    // Associar a imagem com a rota ativa
+  }
 }
