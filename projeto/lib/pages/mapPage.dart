@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,6 +9,10 @@ import 'package:projeto/model/RouteEntity.dart';
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+
+
+
 
 
 class MapPage extends StatefulWidget {
@@ -32,6 +37,7 @@ class _MapPageState extends State<MapPage> {
   double activeRouteEndLatitude = 0;
   double activeRouteEndLongitude = 0;
   String activeRouteTitle = '';
+  String? imagePath = '';
 
   late Timer _stopDetectionTimer;
   bool _isStopped = false;
@@ -41,9 +47,7 @@ class _MapPageState extends State<MapPage> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _getCurrentLocation();
-  }
-
-  
+  }  
 
   @override
   Widget build(BuildContext context) {
@@ -177,13 +181,13 @@ class _MapPageState extends State<MapPage> {
                     },
                     decoration: const InputDecoration(hintText: 'Enter a title for this run'),
                   ),
-                  ElevatedButton(
-                    onPressed: _takePhotoAndAssociateWithRoute,
-                    child: Text('Take Photo', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
+                   ElevatedButton(
+                     onPressed: _takePhotoAndAssociateWithRoute,
+                     child: Text('Take Photo', style: TextStyle(color: Colors.white)),
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Colors.blue,
+                     ),
+                   ),
                 ],
               ),
               actions: [
@@ -211,6 +215,7 @@ class _MapPageState extends State<MapPage> {
                             endLongitude: activeRouteEndLongitude,
                             pathfinal: pathfinal,
                             distance: distance,
+                            imagePath: imagePath,
                           );
                           await DatabaseHelper.instance.insertRoute(route);
                           _clearLines();
@@ -332,13 +337,19 @@ void _showStopConfirmationDialog() {
     return distanceKm;
   }
 
-}
+   
 
-Future<void> _takePhotoAndAssociateWithRoute() async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.camera);
-  if (pickedFile != null) {
-    // Salvar a imagem no banco de dados
-    // Associar a imagem com a rota ativa
+  Future<void> _takePhotoAndAssociateWithRoute() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      final File imageFile = File(pickedFile.path);
+      final Directory? appDirectory = await getExternalStorageDirectory();
+      imagePath = '${appDirectory?.path}/your_image.jpg';
+      await imageFile.copy(imagePath!);
+      // O caminho da imagem agora está armazenado em imagePath
+      print('Caminho da imagem: $imagePath');
+    }
   }
+    
 }

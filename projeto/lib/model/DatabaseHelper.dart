@@ -19,13 +19,13 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'routes2.db');
+    String path = join(await getDatabasesPath(), 'routes5.db');
     return await openDatabase(path, version: 1, onCreate: _createDatabase);
   }
 
   Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE routes2 (
+      CREATE TABLE routes5 (
         id INTEGER PRIMARY KEY,
         title TEXT,
         start_latitude REAL,
@@ -33,20 +33,21 @@ class DatabaseHelper {
         end_latitude REAL,
         end_longitude REAL,
         pathfinal TEXT,
-        distance REAL
+        distance REAL,
+        imagePath TEXT
 
       )
     ''');
   }
   Future<int> insertRoute(RouteEntity route) async {
     Database db = await instance.database;
-    return await db.insert('routes2', route.toMap());
+    return await db.insert('routes5', route.toMap());
   }
 
   Future<RouteEntity?> getRouteById(int id) async {
   Database db = await instance.database;
   List<Map<String, dynamic>> maps = await db.query(
-    'routes2',
+    'routes5',
     where: 'id = ?',
     whereArgs: [id],
   );
@@ -61,6 +62,7 @@ class DatabaseHelper {
       endLongitude: maps[0]['end_longitude'],
       pathfinal: maps[0]['pathfinal'],
       distance: maps[0]['distance'],
+      imagePath: maps[0]['imagePath'],
     );
   } else {
     return null; // Retorna null se a rota não for encontrada
@@ -69,7 +71,7 @@ class DatabaseHelper {
 
   Future<List<RouteEntity>> getAllRoutes() async {
   Database db = await instance.database;
-  List<Map<String, dynamic>> maps = await db.query('routes2');
+  List<Map<String, dynamic>> maps = await db.query('routes5');
   return List.generate(maps.length, (i) {
     return RouteEntity(
       id: maps[i]['id'],
@@ -80,6 +82,7 @@ class DatabaseHelper {
       endLongitude: maps[i]['end_longitude'],
       pathfinal: maps[i]['pathfinal'],
       distance: maps[i]['distance'],
+      imagePath: maps[i]['imagePath'],
     );
   });
 }
@@ -87,7 +90,7 @@ class DatabaseHelper {
 Future<int> updateRoute(RouteEntity route) async {
   Database db = await instance.database;
   return await db.update(
-    'routes2',
+    'routes5',
     route.toMap(),
     where: 'id = ?',
     whereArgs: [route.id],
@@ -97,7 +100,7 @@ Future<int> updateRoute(RouteEntity route) async {
 Future<void> deleteRoute(int? id) async {
   Database db = await instance.database;
   await db.delete(
-    'routes2',
+    'routes5',
     where: 'id = ?',
     whereArgs: [id],
   );

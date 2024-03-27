@@ -8,6 +8,7 @@ class RouteEntity{
   double endLongitude;
   String pathfinal;
   double distance;
+  String? imagePath;
 
   RouteEntity({
     this.id,
@@ -18,6 +19,7 @@ class RouteEntity{
     required this.endLongitude,
     required this.pathfinal,
     required this.distance,
+    this.imagePath,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,11 +32,12 @@ class RouteEntity{
       'end_longitude': endLongitude,
       'pathfinal': pathfinal,
       'distance': distance,
+      'imagePath': imagePath,
     };
   }
 
   @override
   String toString() {
-    return 'Route{id: $id, title: $title, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, distance: $distance, pathfinal: $pathfinal}';
+    return 'Route{id: $id, title: $title, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, distance: $distance, pathfinal: $pathfinal, imagePath: $imagePath}';
   }
 }

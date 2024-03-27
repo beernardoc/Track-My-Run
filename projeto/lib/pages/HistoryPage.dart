@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:projeto/model/DatabaseHelper.dart';
@@ -117,6 +119,14 @@ class _HistoryPageState extends State<HistoryPage> {
                     Text('Distance: ${route.distance.toStringAsFixed(2)} km'),
                     const SizedBox(height: 10),
                     _buildRouteMap(route.pathfinal),
+                    const SizedBox(height: 10),
+                    Text("imagePath: ${route.imagePath}"),
+                    if (route.imagePath != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.file(File(route.imagePath!)),
+                    ),
+
                   ],
                 ),
               ],
