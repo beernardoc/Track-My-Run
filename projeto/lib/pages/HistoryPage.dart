@@ -6,6 +6,8 @@ import 'package:projeto/model/DatabaseHelper.dart';
 import 'package:projeto/model/RouteEntity.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
+import 'package:projeto/model/UnitProvider.dart';
+import 'package:provider/provider.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({Key? key}) : super(key: key);
@@ -32,111 +34,118 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final unitProvider = Provider.of<UnitProvider>(context);
     return Scaffold(
-      body: _buildRoutesList(),
+      body: _buildRoutesList(unitProvider),
     );
   }
 
-  Widget _buildRoutesList() {
-  if (_routes.isEmpty) {
-    return const Center(child: Text('You have no routes yet!'));
-  } else {
-    return ListView.builder(
-      itemCount: _routes.length,
-      itemBuilder: (context, index) {
-        final route = _routes.reversed.toList()[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ExpansionTile(
-              title: Text('${route.title}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PopupMenuButton<String>(
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'other_option',
-                        child: ListTile(
-                          leading: Icon(Icons.more_horiz),
-                          title: Text('...'),
-                        ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: ListTile(
-                          leading: Icon(Icons.delete, color: Colors.red),
-                          title: Text('Delete'),
-                        ),
-                      ),
-                    ],
-                    onSelected: (String value) async {
-                      if (value == 'delete') {
-                        _showDeleteDialog(route);
-                      } else if (value == 'other_option') {
-                        // ...
-                      }
-                    },
-                  ),
-                  Icon(Icons.expand_more), // Ícone de seta de expansão
-                ],
+  Widget _buildRoutesList(UnitProvider unitProvider) {
+    final unit = unitProvider.unit;
+    if (_routes.isEmpty) {
+      return const Center(child: Text('You have no routes yet!'));
+    } else {
+      return ListView.builder(
+        itemCount: _routes.length,
+        itemBuilder: (context, index) {
+          final route = _routes.reversed.toList()[index];
+          double distance = route.distance;
+          if (unit == 'miles') {
+            // Convertendo de quilômetros para milhas
+            distance *= 0.621371;
+          }
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: ExpansionTile(
+                title: Text('${route.title}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(height: 10),
-                    FutureBuilder<String>(
-                      future: getAddress(route.startLatitude, route.startLongitude),
-                      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Text('Carregando endereço...');
-                        } else if (snapshot.hasError) {
-                          return Text('Erro ao obter endereço: ${snapshot.error}');
-                        } else {
-                          return Text('Start: ${snapshot.data}');
+                    PopupMenuButton<String>(
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'other_option',
+                          child: ListTile(
+                            leading: Icon(Icons.more_horiz),
+                            title: Text('...'),
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'delete',
+                          child: ListTile(
+                            leading: Icon(Icons.delete, color: Colors.red),
+                            title: Text('Delete'),
+                          ),
+                        ),
+                      ],
+                      onSelected: (String value) async {
+                        if (value == 'delete') {
+                          _showDeleteDialog(route);
+                        } else if (value == 'other_option') {
+                          // ...
                         }
                       },
                     ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<String>(
-                      future: getAddress(route.endLatitude, route.endLongitude),
-                      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Text('Carregando endereço...');
-                        } else if (snapshot.hasError) {
-                          return Text('Erro ao obter endereço: ${snapshot.error}');
-                        } else {
-                          return Text('End: ${snapshot.data}');
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Text('Distance: ${route.distance.toStringAsFixed(2)} km'),
-                    const SizedBox(height: 10),
-                    _buildRouteMap(route.pathfinal),
-                    const SizedBox(height: 10),
-                    Text("imagePath: ${route.imagePath}"),
-                    if (route.imagePath != null)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image.file(File(route.imagePath!)),
-                    ),
-
+                    Icon(Icons.expand_more), // Ícone de seta de expansão
                   ],
                 ),
-              ],
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      FutureBuilder<String>(
+                        future: getAddress(route.startLatitude, route.startLongitude),
+                        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text('Carregando endereço...');
+                          } else if (snapshot.hasError) {
+                            return Text('Erro ao obter endereço: ${snapshot.error}');
+                          } else {
+                            return Text('Start: ${snapshot.data}');
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      FutureBuilder<String>(
+                        future: getAddress(route.endLatitude, route.endLongitude),
+                        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text('Carregando endereço...');
+                          } else if (snapshot.hasError) {
+                            return Text('Erro ao obter endereço: ${snapshot.error}');
+                          } else {
+                            return Text('End: ${snapshot.data}');
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Distance: ${distance.toStringAsFixed(2)} $unit'),
+                      const SizedBox(height: 10),
+                      _buildRouteMap(route.pathfinal),
+                      const SizedBox(height: 10),
+                      Text("imagePath: ${route.imagePath}"),
+                      if (route.imagePath != null)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.file(File(route.imagePath!)),
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    }
   }
-}
 
   Widget _buildRouteMap(String path) {
     List<dynamic> coordinatesList = jsonDecode(path);

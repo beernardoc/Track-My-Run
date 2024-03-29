@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:projeto/pages/HistoryPage.dart';
 import 'package:projeto/pages/WeatherPage.dart';
 import 'package:projeto/pages/mapPage.dart';
+import 'package:projeto/pages/SettingsPage.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -39,7 +41,7 @@ class _HomePageState extends State<HomePage> {
                 const MapPage(),
                 const HistoryPage(),
                 const WeatherPage(),
-                Container(child: const Text("teste")),
+                SettingsPage(),
               ],
             ),
           ),

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:projeto/pages/homePage.dart';
+import 'package:provider/provider.dart';
+import 'package:projeto/model/UnitProvider.dart';
 
 
 Future<void> main() async {
   //await initDatabase();
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+      create: (context) => UnitProvider(), // Inicia o Provider
+      child: MyApp(),
+    ),);
 
 }
 
