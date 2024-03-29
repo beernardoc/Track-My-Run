@@ -4,79 +4,97 @@ import 'package:projeto/pages/WeatherPage.dart';
 import 'package:projeto/pages/mapPage.dart';
 import 'package:projeto/pages/SettingsPage.dart';
 
-
-
 class HomePage extends StatefulWidget {
-  
-  const HomePage({super.key});
+  const HomePage({Key? key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  
   @override
-    Widget build(BuildContext context) {
-      return MaterialApp(
-        home: DefaultTabController(
-          length: 4,
-          child: Scaffold(
-            appBar: AppBar(
-              // ignore: prefer_const_constructors
-              backgroundColor: Color.fromARGB(255, 19, 199, 49),
-
-              // ignore: prefer_const_constructors
-              title: Text("TrackMyRune"),
-              centerTitle: true,
-              titleTextStyle: const TextStyle(
-                fontSize: 25,
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData(
+        primaryColor: const Color(0xFF13C731), // Cor primária (verde)
+        hintColor: const Color(0xFF27AE60), // Cor de destaque (verde mais escura)
+        scaffoldBackgroundColor: const Color(0xFFF9F9F9), // Cor de fundo do Scaffold
+      ),
+      home: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              "TrackMyRune",
+              style: TextStyle(
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
-              
             ),
-            bottomNavigationBar: menu(),
-            body: TabBarView(
-              children: [
-                const MapPage(),
-                const HistoryPage(),
-                const WeatherPage(),
-                SettingsPage(),
-              ],
-            ),
+            centerTitle: true,
+          ),
+          bottomNavigationBar: menu(),
+          body: const TabBarView(
+            children: [
+              MapPage(),
+              HistoryPage(),
+              WeatherPage(),
+              SettingsPage(),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-     Widget menu() {
-      return Container(
-        color: const Color.fromARGB(255, 19, 199, 49),
-        child: const TabBar(
+  Widget menu() {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Theme.of(context).primaryColor, // Usando a cor primária como cor de fundo
+        child: TabBar(
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           indicatorSize: TabBarIndicatorSize.tab,
-          indicatorPadding: EdgeInsets.all(5.0),
+          indicatorPadding: const EdgeInsets.all(5.0),
           indicatorColor: Colors.white,
           tabs: [
             Tab(
-              text: "Home",
-              icon: Icon(Icons.home),
+              icon: Icon(
+                Icons.home,
+                size: 28,
+              ),
             ),
             Tab(
-              text: "History",
-              icon: Icon(Icons.assignment),
-            ),  
-            Tab(
-              text: "Weather",
-              icon: Icon(Icons.cloud),
+              icon: Icon(
+                Icons.assignment,
+                size: 28,
+              ),
             ),
             Tab(
-              text: "Settings",
-              icon: Icon(Icons.settings),
+              icon: Icon(
+                Icons.cloud,
+                size: 28,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.settings,
+                size: 28,
+              ),
             ),
           ],
         ),
-      );
-      }
+      ),
+    );
+  }
 }

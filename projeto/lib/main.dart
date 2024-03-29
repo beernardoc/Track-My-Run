@@ -8,7 +8,7 @@ Future<void> main() async {
   //await initDatabase();
   runApp(ChangeNotifierProvider(
       create: (context) => UnitProvider(), // Inicia o Provider
-      child: MyApp(),
+      child: const MyApp(),
     ),);
 
 }

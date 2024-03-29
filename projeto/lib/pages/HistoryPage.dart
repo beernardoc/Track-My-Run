@@ -1,16 +1,17 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:projeto/model/DatabaseHelper.dart';
-import 'package:projeto/model/RouteEntity.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'dart:convert';
-import 'package:projeto/model/UnitProvider.dart';
 import 'package:provider/provider.dart';
 
+import 'package:projeto/model/DatabaseHelper.dart';
+import 'package:projeto/model/RouteEntity.dart';
+import 'package:projeto/model/UnitProvider.dart';
+
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  const HistoryPage({super.key});
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -18,7 +19,7 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   List<RouteEntity> _routes = [];
-  
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +37,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     final unitProvider = Provider.of<UnitProvider>(context);
     return Scaffold(
+      
       body: _buildRoutesList(unitProvider),
     );
   }
@@ -43,7 +45,12 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget _buildRoutesList(UnitProvider unitProvider) {
     final unit = unitProvider.unit;
     if (_routes.isEmpty) {
-      return const Center(child: Text('You have no routes yet!'));
+      return const Center(
+        child: Text(
+          'You have no routes yet!',
+          style: TextStyle(fontSize: 18),
+        ),
+      );
     } else {
       return ListView.builder(
         itemCount: _routes.length,
@@ -55,89 +62,20 @@ class _HistoryPageState extends State<HistoryPage> {
             distance *= 0.621371;
           }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(8.0),
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ExpansionTile(
-                title: Text('${route.title}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PopupMenuButton<String>(
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'other_option',
-                          child: ListTile(
-                            leading: Icon(Icons.more_horiz),
-                            title: Text('...'),
-                          ),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: 'delete',
-                          child: ListTile(
-                            leading: Icon(Icons.delete, color: Colors.red),
-                            title: Text('Delete'),
-                          ),
-                        ),
-                      ],
-                      onSelected: (String value) async {
-                        if (value == 'delete') {
-                          _showDeleteDialog(route);
-                        } else if (value == 'other_option') {
-                          // ...
-                        }
-                      },
-                    ),
-                    Icon(Icons.expand_more), // Ícone de seta de expansão
-                  ],
+                title: Text(
+                  '${route.title}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
+                trailing: _buildPopupMenuButton(route),
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      FutureBuilder<String>(
-                        future: getAddress(route.startLatitude, route.startLongitude),
-                        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Text('Carregando endereço...');
-                          } else if (snapshot.hasError) {
-                            return Text('Erro ao obter endereço: ${snapshot.error}');
-                          } else {
-                            return Text('Start: ${snapshot.data}');
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      FutureBuilder<String>(
-                        future: getAddress(route.endLatitude, route.endLongitude),
-                        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Text('Carregando endereço...');
-                          } else if (snapshot.hasError) {
-                            return Text('Erro ao obter endereço: ${snapshot.error}');
-                          } else {
-                            return Text('End: ${snapshot.data}');
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      Text('Distance: ${distance.toStringAsFixed(2)} $unit'),
-                      const SizedBox(height: 10),
-                      _buildRouteMap(route.pathfinal),
-                      const SizedBox(height: 10),
-                      Text("imagePath: ${route.imagePath}"),
-                      if (route.imagePath != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.file(File(route.imagePath!)),
-                      ),
-
-                    ],
-                  ),
+                  _buildRouteInfo(route, distance, unit),
                 ],
               ),
             ),
@@ -145,6 +83,119 @@ class _HistoryPageState extends State<HistoryPage> {
         },
       );
     }
+  }
+
+  Widget _buildPopupMenuButton(RouteEntity route) {
+
+      void showImageDialog(String imagePath) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.contain,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PopupMenuButton<String>(
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'delete',
+              child: ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Delete'),
+              ),
+            ),
+          ],
+          onSelected: (String value) async {
+            if (value == 'delete') {
+              _showDeleteDialog(route);
+            }
+          },
+        ),
+        if (route.imagePath != null && route.imagePath!.isNotEmpty)
+          IconButton(
+            icon: Icon(Icons.image),
+            onPressed: () {
+              showImageDialog(route.imagePath!);
+            },
+          ),
+          Icon(Icons.expand_more), // Ícone de seta de expansão
+      ],
+    );
+
+  
+  
+  }
+
+  Widget _buildRouteInfo(RouteEntity route, double distance, String unit) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 12),
+      _buildAddressInfo(route.startLatitude, route.startLongitude, 'Start'),
+      const SizedBox(height: 12),
+      _buildAddressInfo(route.endLatitude, route.endLongitude, 'End'),
+      const SizedBox(height: 12),
+      Text(
+        'Distance: ${distance.toStringAsFixed(2)} $unit',
+        style: const TextStyle(fontSize: 16),
+      ),
+      
+      const SizedBox(height: 12),
+      Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: _buildRouteMap(route.pathfinal),
+        ),
+      ),
+      
+    ],
+  );
+}
+
+
+  Widget _buildAddressInfo(double latitude, double longitude, String label) {
+    return FutureBuilder<String>(
+      future: getAddress(latitude, longitude),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text('Loading address...');
+        } else if (snapshot.hasError) {
+          return Text(
+            'Error getting address: ${snapshot.error}',
+            style: const TextStyle(color: Colors.red),
+          );
+        } else {
+          return Text(
+            '$label: ${snapshot.data}',
+            style: const TextStyle(fontSize: 16),
+          );
+        }
+      },
+    );
   }
 
   Widget _buildRouteMap(String path) {
@@ -222,15 +273,16 @@ class _HistoryPageState extends State<HistoryPage> {
                 _loadRoutes();
                 Navigator.of(context).pop();
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
             ),
           ],
         );
       },
     );
   }
-
 
   Future<String> getAddress(double latitude, double longitude) async {
     List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);

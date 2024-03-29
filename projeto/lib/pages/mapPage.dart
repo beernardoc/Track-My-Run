@@ -171,25 +171,58 @@ class _MapPageState extends State<MapPage> {
               title: const Text('Would you like to save this run?'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        title = value;
-                        isButtonEnabled = title.isNotEmpty;
-                      });
-                    },
-                    decoration: const InputDecoration(hintText: 'Enter a title for this run'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          title = value;
+                          isButtonEnabled = title.isNotEmpty;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Enter a title for this run',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                    ),
                   ),
-                   ElevatedButton(
-                     onPressed: _takePhotoAndAssociateWithRoute,
-                     child: Text('Take Photo', style: TextStyle(color: Colors.white)),
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: Colors.blue,
-                     ),
-                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: ElevatedButton.icon(
+                      onPressed: _takePhotoAndAssociateWithRoute,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.all(12.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Add Photo',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
+
               actions: [
                 TextButton(
                   onPressed: () {
