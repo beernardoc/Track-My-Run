@@ -4,7 +4,7 @@ import 'package:projeto/service/weather_service.dart';
 import 'package:lottie/lottie.dart';
 
 class WeatherPage extends StatefulWidget {
-  const WeatherPage({Key? key}) : super(key: key);
+  const WeatherPage({super.key});
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
@@ -31,27 +31,21 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   String getWeatherAnimation(String description) {
-    
+    print(_weather!.description);
 
     switch (description.toLowerCase()) {
       case 'overcast clouds':
         return 'assets/lottie/cloud.json'; 
-      case 'mist':
-        return 'assets/lottie/mist.json';
-      case 'smoke':
-        return 'assets/lottie/smoke.json';
-      case 'haze':
-        return 'assets/lottie/haze.json';
-      case 'fog':
-        return 'assets/lottie/fog.json';
+      case 'clear sky':
+        return 'assets/lottie/sunny.json';
       case 'rain':
         return 'assets/lottie/rain.json';
-      case 'drizzle':
-        return 'assets/lottie/drizzle.json';
       case 'thunder':
         return 'assets/lottie/thunder.json';
+      case 'moderate rain':
+        return 'assets/lottie/moderate_rain.json';
       default:
-        return 'assets/lottie/sunny.json';
+        return 'assets/lottie/default.json';
     }
   }
   @override
@@ -66,10 +60,11 @@ class _WeatherPageState extends State<WeatherPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_weather != null) 
+            if (_weather != null)
               Column(
                 children: [
                   Text(_weather!.cityName, style: const TextStyle(fontSize: 24)),
+                  
                   Lottie.asset(getWeatherAnimation(_weather!.description), width: 200, height: 200),
                   Text('${_weather!.temperature.round()}°C', style: const TextStyle(fontSize: 24)),
                   Text(_weather!.description, style: const TextStyle(fontSize: 24)),

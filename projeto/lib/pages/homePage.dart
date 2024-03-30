@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
         child: Scaffold(
           appBar: AppBar(
             title: const Text(
-              "TrackMyRune",
+              "TrackMyRun",
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

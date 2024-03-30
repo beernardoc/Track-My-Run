@@ -1,10 +1,10 @@
-# TrackMyRune
+# TrackMyRun
 
-Imagine an app that not only tracks your runs but also makes them memorable. With TrackMyRune, you can save the history of your runs and even associate photos with them - capturing that amazing and motivating moment along the way.
+Imagine an app that not only tracks your runs but also makes them memorable. With TrackMyRun, you can save the history of your runs and even associate photos with them - capturing that amazing and motivating moment along the way.
 
 Before heading out for your next adventure, check the weather in your area directly in the app on the "Weather" tab. This way, you'll always be prepared, whether you're facing scorching sun or running in refreshing rain.
 
-With TrackMyRune, each run becomes a unique and exciting experience.
+With TrackMyRun, each run becomes a unique and exciting experience.
 
 ##
 

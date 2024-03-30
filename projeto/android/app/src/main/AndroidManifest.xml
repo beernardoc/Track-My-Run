@@ -8,7 +8,7 @@
     
 
     <application
-        android:label="TrackMyRune"
+        android:label="TrackMyRun"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher">
         
