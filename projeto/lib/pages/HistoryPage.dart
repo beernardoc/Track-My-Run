@@ -58,7 +58,6 @@ class _HistoryPageState extends State<HistoryPage> {
           final route = _routes.reversed.toList()[index];
           double distance = route.distance;
           if (unit == 'miles') {
-            // Convertendo de quilômetros para milhas
             distance *= 0.621371;
           }
           return Padding(
@@ -126,12 +125,12 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         if (route.imagePath != null && route.imagePath!.isNotEmpty)
           IconButton(
-            icon: Icon(Icons.image),
+            icon: const Icon(Icons.image),
             onPressed: () {
               showImageDialog(route.imagePath!);
             },
           ),
-          Icon(Icons.expand_more), // Ícone de seta de expansão
+          const Icon(Icons.expand_more), 
       ],
     );
 
@@ -276,7 +275,7 @@ class _HistoryPageState extends State<HistoryPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
               ),
-              child: const Text('Delete'),
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
             ),
           ],
         );

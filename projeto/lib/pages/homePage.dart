@@ -16,9 +16,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        primaryColor: const Color(0xFF13C731), // Cor primária (verde)
-        hintColor: const Color(0xFF27AE60), // Cor de destaque (verde mais escura)
-        scaffoldBackgroundColor: const Color(0xFFF9F9F9), // Cor de fundo do Scaffold
+        primaryColor: const Color(0xFF13C731), 
+        hintColor: const Color(0xFF27AE60), 
+        scaffoldBackgroundColor: const Color(0xFFF9F9F9), 
       ),
       home: DefaultTabController(
         length: 4,
@@ -60,12 +60,12 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       child: Material(
-        color: Theme.of(context).primaryColor, // Usando a cor primária como cor de fundo
-        child: TabBar(
+        color: Theme.of(context).primaryColor, 
+        child: const TabBar(
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           indicatorSize: TabBarIndicatorSize.tab,
-          indicatorPadding: const EdgeInsets.all(5.0),
+          indicatorPadding: EdgeInsets.all(5.0),
           indicatorColor: Colors.white,
           tabs: [
             Tab(

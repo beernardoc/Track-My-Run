@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 
 
 class MapPage extends StatefulWidget {
-  const MapPage({Key? key}) : super(key: key);
+  const MapPage({super.key});
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -26,8 +26,8 @@ class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
   
   LocationData? _currentLocation;
-  Location _location = Location();
-  List<LatLng> _routeCoordinates = [];
+  final Location _location = Location();
+  final List<LatLng> _routeCoordinates = [];
   bool _isRunning = false;
   late StreamSubscription<LocationData> _locationSubscription;
 
@@ -40,10 +40,14 @@ class _MapPageState extends State<MapPage> {
   String? imagePath = '';
 
   late Timer _stopDetectionTimer;
+  late Timer timer;
   bool _isStopped = false;
   LocationData? _previousLocation;
+  double distanceCovered = 0.0;
+  int lastKm = 0;
+  int _elapsedTimeSeconds = 0;
   
-
+  
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _getCurrentLocation();
@@ -84,15 +88,108 @@ class _MapPageState extends State<MapPage> {
                       });
                     },
                     icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white),
-                    label: Text(_isRunning ? 'Finish run' : 'Start run', style: TextStyle(color: Colors.white)),
+                    label: Text(_isRunning ? 'Finish run' : 'Start run', style: const TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 19, 199, 49),
+                      backgroundColor: _isRunning ? Colors.red : Colors.green,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+         _isRunning
+    ? SizedBox(
+        height: 130, 
+        child: Container(
+          margin: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3), 
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Distance',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    '${distanceCovered.toStringAsFixed(2)} km',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Time',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    _formatElapsedTime(_elapsedTimeSeconds),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Pace',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    '${_calculatePace(distanceCovered, _elapsedTimeSeconds)} min/km',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      )
+    : Container(),
+
+
         ],
       ),
     );
@@ -131,6 +228,8 @@ class _MapPageState extends State<MapPage> {
 
     activeRouteStartLatitude = _currentLocation!.latitude!;
     activeRouteStartLongitude = _currentLocation!.longitude!;
+    distanceCovered = 0.0;
+    _elapsedTimeSeconds = 0;
 
     _previousLocation = await _location.getLocation();
 
@@ -139,6 +238,12 @@ class _MapPageState extends State<MapPage> {
         _checkMovement();
       }
     });
+
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    setState(() {
+      _elapsedTimeSeconds++;
+    });
+  });
     
     _locationSubscription = _location.onLocationChanged.listen((LocationData locationData) {
       setState(() {
@@ -152,13 +257,31 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
         );
+
+        if (_routeCoordinates.length > 1) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _routeCoordinates[_routeCoordinates.length - 2].latitude,
+            _routeCoordinates[_routeCoordinates.length - 2].longitude,
+            _routeCoordinates.last.latitude,
+            _routeCoordinates.last.longitude,
+          );
+
+          double distanceInKm = (distanceInMeters / 1000);
+          distanceCovered += double.parse(distanceInKm.toStringAsFixed(2));
+        }
+
+        
+
+
       });
     });
   }
 
+  
+
   Future<void> _pauseRun() async {
     _stopDetectionTimer.cancel();
-
+    timer.cancel();
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -169,7 +292,8 @@ class _MapPageState extends State<MapPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Would you like to save this run?'),
-              content: Column(
+              content: SingleChildScrollView(
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -184,7 +308,7 @@ class _MapPageState extends State<MapPage> {
                       },
                       decoration: InputDecoration(
                         hintText: 'Enter a title for this run',
-                        hintStyle: TextStyle(color: Colors.grey),
+                        hintStyle: const TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                           borderSide: const BorderSide(color: Colors.blue),
@@ -196,18 +320,22 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ),
                   ),
+                  imagePath == null || imagePath!.isEmpty ?
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: ElevatedButton.icon(
-                      onPressed: _takePhotoAndAssociateWithRoute,
+                      onPressed: () async {
+                        imagePath = await _takePhotoAndAssociateWithRoute();
+                        setState(() {});
+                      },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.deepPurple,
                         padding: const EdgeInsets.all(12.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.camera_alt,
                         color: Colors.white,
                       ),
@@ -219,14 +347,33 @@ class _MapPageState extends State<MapPage> {
                         ),
                       ),
                     ),
-                  ),
+                  ) : Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Stack(
+                          children: [
+                            Image.file(File(imagePath!)),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    imagePath = null; 
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                 ],
+              )
               ),
 
               actions: [
                 TextButton(
                   onPressed: () {
-                    DatabaseHelper.instance.deleteDatabaseFile();
                     _clearLines();
                     Navigator.of(context).pop();
                   },
@@ -264,7 +411,38 @@ class _MapPageState extends State<MapPage> {
       },
     );
     _locationSubscription.cancel();
+    setState(() {
+      imagePath = '';
+    });
   }
+
+
+String _calculatePace(double distanceCovered, int elapsedTimeSeconds) {
+  double elapsedTimeMinutes = elapsedTimeSeconds / 60;
+
+  if (distanceCovered == 0) {
+    return '0.00';
+  }
+  
+  double pace = elapsedTimeMinutes / distanceCovered;
+  String formattedPace = pace.toStringAsFixed(2); 
+
+  return formattedPace;
+}
+
+String _formatElapsedTime(int elapsedTimeSeconds) {
+  int hours = elapsedTimeSeconds ~/ 3600;
+  int minutes = (elapsedTimeSeconds ~/ 60) % 60;
+  int seconds = elapsedTimeSeconds % 60;
+
+  String hoursStr = (hours < 10) ? '0$hours' : '$hours';
+  String minutesStr = (minutes < 10) ? '0$minutes' : '$minutes';
+  String secondsStr = (seconds < 10) ? '0$seconds' : '$seconds';
+
+  return '$hoursStr:$minutesStr:$secondsStr';
+}
+
+  
  String convertToString(List<LatLng> routeCoordinates) {
   List<List<double>> coordinatesList = [];
   
@@ -322,7 +500,7 @@ void _showStopConfirmationDialog() {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // Lidar com o caso em que o usuário confirmou que parou
+              _pauseRun();
             },
             child: const Text('Sim'),
           ),
@@ -333,11 +511,10 @@ void _showStopConfirmationDialog() {
 }
 
   void _checkMovement() async {
-    // Obter a nova localização
+    
     LocationData currentLocation = await _location.getLocation();
 
-    // Calcular a distância entre a localização anterior e a nova localização
-    double distanceInMeters = await Geolocator.distanceBetween(
+    double distanceInMeters = Geolocator.distanceBetween(
       _previousLocation!.latitude!,
       _previousLocation!.longitude!,
       currentLocation.latitude!,
@@ -348,7 +525,6 @@ void _showStopConfirmationDialog() {
       _isStopped = true;
       _showStopConfirmationDialog();
     } else {
-      // Se houve movimento, atualize a localização anterior e reinicie o temporizador
       _previousLocation = currentLocation;
       _stopDetectionTimer.cancel();
       _stopDetectionTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
@@ -372,17 +548,21 @@ void _showStopConfirmationDialog() {
 
    
 
-  Future<void> _takePhotoAndAssociateWithRoute() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      final File imageFile = File(pickedFile.path);
-      final Directory? appDirectory = await getExternalStorageDirectory();
-      imagePath = '${appDirectory?.path}/your_image.jpg';
-      await imageFile.copy(imagePath!);
-      // O caminho da imagem agora está armazenado em imagePath
-      print('Caminho da imagem: $imagePath');
-    }
+  Future<String> _takePhotoAndAssociateWithRoute() async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  if (pickedFile != null) {
+    final File imageFile = File(pickedFile.path);
+    final Directory? appDirectory = await getExternalStorageDirectory();
+    
+    imagePath = '${appDirectory?.path}/your_image.jpg';
+    
+    await imageFile.copy(imagePath!);
+    return imagePath!;
+    
   }
+  return '';
+}
+
     
 }

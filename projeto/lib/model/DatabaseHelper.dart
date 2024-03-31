@@ -65,7 +65,7 @@ class DatabaseHelper {
       imagePath: maps[0]['imagePath'],
     );
   } else {
-    return null; // Retorna null se a rota não for encontrada
+    return null; 
   }
 }
 

@@ -31,8 +31,8 @@ class SettingsPage extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Provider.of<UnitProvider>(context).unit == 'km'
-                          ? Colors.grey // Cor do botão selecionado
-                          : Colors.white, // Cor do botão não selecionado
+                          ? Colors.grey  
+                          : Colors.white, 
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
                     child: const Text(
@@ -49,8 +49,8 @@ class SettingsPage extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Provider.of<UnitProvider>(context).unit == 'miles'
-                          ? Colors.grey // Cor do botão selecionado
-                          : Colors.white, // Cor do botão não selecionado
+                          ? Colors.grey 
+                          : Colors.white, 
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
                     child: const Text(
