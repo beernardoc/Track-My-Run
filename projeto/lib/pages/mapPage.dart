@@ -395,6 +395,7 @@ class _MapPageState extends State<MapPage> {
                             endLongitude: activeRouteEndLongitude,
                             pathfinal: pathfinal,
                             distance: distance,
+                            duration: _elapsedTimeSeconds,
                             imagePath: imagePath,
                           );
                           await DatabaseHelper.instance.insertRoute(route);

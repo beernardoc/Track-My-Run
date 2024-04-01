@@ -9,6 +9,7 @@ class RouteEntity{
   String pathfinal;
   double distance;
   String? imagePath;
+  int? duration;
 
   RouteEntity({
     this.id,
@@ -19,6 +20,7 @@ class RouteEntity{
     required this.endLongitude,
     required this.pathfinal,
     required this.distance,
+    required this.duration,
     this.imagePath,
   });
 
@@ -32,6 +34,7 @@ class RouteEntity{
       'end_longitude': endLongitude,
       'pathfinal': pathfinal,
       'distance': distance,
+      'duration': duration,
       'imagePath': imagePath,
     };
   }

@@ -143,15 +143,24 @@ class _HistoryPageState extends State<HistoryPage> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 12),
-      _buildAddressInfo(route.startLatitude, route.startLongitude, 'Start'),
-      const SizedBox(height: 12),
-      _buildAddressInfo(route.endLatitude, route.endLongitude, 'End'),
-      const SizedBox(height: 12),
       Text(
         'Distance: ${distance.toStringAsFixed(2)} $unit',
         style: const TextStyle(fontSize: 16),
       ),
-      
+      const SizedBox(height: 12),
+      route.duration! < 60
+          ? Text(
+              'Duration: ${route.duration} seconds',
+              style: const TextStyle(fontSize: 16),
+            )
+          : Text(
+              'Duration: ${route.duration! ~/ 60} minutes',
+              style: const TextStyle(fontSize: 16),
+            ),
+      const SizedBox(height: 12),
+      _buildAddressInfo(route.startLatitude, route.startLongitude, 'Start'),
+      const SizedBox(height: 12),
+      _buildAddressInfo(route.endLatitude, route.endLongitude, 'End'),
       const SizedBox(height: 12),
       Container(
         decoration: BoxDecoration(
