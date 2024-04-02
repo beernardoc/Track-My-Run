@@ -39,7 +39,7 @@ João Santos - 110555 (50%)
 - [Demo](demo/TrackMyRunDemo.mp4)
 
 This demo was recorded on an emulator to make route creation and viewing easier.
-Running on the emulator may cause some lag in the app, such as black lines on the map and slow loading of the map, which does not happen on a real device (see screenshots).
+Running on the emulator may cause some lag in the app which does not happen on a real device.
 
 ### Screenshots
 
