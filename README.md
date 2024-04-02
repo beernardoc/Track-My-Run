@@ -14,7 +14,19 @@ João Santos - 110555 (50%)
 
 
 
-## How to run 
+## How to run
+
+- To run you need a Google Maps API key, which you can put in the [AndroidManifest.xml](projeto/android/app/src/main/AndroidManifest.xml) file.
+```xml
+<application android:label="TrackMyRun" android:requestLegacyExternalStorage="true" android:icon="@mipmap/ic_launcher">
+        
+        <!-- TODO: Add your Google Maps API key here -->
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_API_KEY_HERE"/>
+
+</application>
+
+
+```
 
 - To install the dependencies run the following command in the root of the project:
     - `flutter pub get`
