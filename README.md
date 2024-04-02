@@ -40,6 +40,7 @@ Some screenshots of the app running on a real device.
 ## Features
 
 -  **Track your runs**: Track your runs and save them in the app.
+-  **Map**:  Users can view their route on an interactive map directly within the application.
 -  **Weather**: Check the weather in your area before heading out for a run.
 -  **Photos**: Associate photos with your runs to make them memorable.
 -  **Statistics**: Check your run statistics
