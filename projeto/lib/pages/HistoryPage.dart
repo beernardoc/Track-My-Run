@@ -150,7 +150,7 @@ class _HistoryPageState extends State<HistoryPage> {
       const SizedBox(height: 12),
       route.duration! < 60
           ? Text(
-              'Duration: ${route.duration} seconds',
+              'Duration: ${route.imagePath} seconds',
               style: const TextStyle(fontSize: 16),
             )
           : Text(

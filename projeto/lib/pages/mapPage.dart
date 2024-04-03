@@ -552,14 +552,16 @@ void _showStopConfirmationDialog() {
   Future<String> _takePhotoAndAssociateWithRoute() async {
   final picker = ImagePicker();
   final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  final String uniqueFileName = 'image_$timestamp.jpg';
   if (pickedFile != null) {
     final File imageFile = File(pickedFile.path);
     final Directory? appDirectory = await getExternalStorageDirectory();
     
-    imagePath = '${appDirectory?.path}/your_image.jpg';
+    final String imagePath = '${appDirectory?.path}/$uniqueFileName';
     
-    await imageFile.copy(imagePath!);
-    return imagePath!;
+    await imageFile.copy(imagePath);
+    return imagePath;
     
   }
   return '';
